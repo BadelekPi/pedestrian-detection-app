@@ -1,0 +1,227 @@
+import logging
+import threading
+
+import numpy as np
+import os
+import six.moves.urllib as urllib
+import sys
+import tarfile
+import tensorflow as tf
+import zipfile
+
+from collections import defaultdict
+from io import StringIO
+from matplotlib import pyplot as plt
+from PIL import Image
+from IPython.display import display
+
+from object_detection.utils import ops as utils_ops
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
+
+import screeninfo
+from imutils import resize
+import cvzone
+import winsound
+import time
+import threading
+import beepy as beep
+import cv2
+
+
+# patch tf1 into `utils.ops`
+utils_ops.tf = tf.compat.v1
+
+# Patch the location of gfile
+tf.gfile = tf.io.gfile
+
+# List of the strings that is used to add correct label for each box.
+PATH_TO_LABELS = 'object_detection\images\labelmap.pbtxt'
+category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
+
+import pathlib
+# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
+PATH_TO_TEST_IMAGES_DIR = pathlib.Path('object_detection/test_images')
+# TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
+TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.mp4")))
+TEST_IMAGE_PATHS
+### change the location accordingly
+detection_model = tf.saved_model.load('object_detection\inference_graph/saved_model')
+
+def thread_function(name, stop_request, pitch, duration):
+    soundTone(pitch, duration)
+
+
+def soundTone(pitch, duration):
+    winsound.Beep(pitch, int(duration*1000))
+    # winsound.Beep(pitch, int(duration))
+stop_request = threading.Event()
+# thread = threading.Thread(target=thread_function, args=(1, stop_request))
+
+
+def run_inference_for_single_image(model, image):
+  image = np.asarray(image)
+  # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
+  input_tensor = tf.convert_to_tensor(image)
+  # The model expects a batch of images, so add an axis with `tf.newaxis`.
+  input_tensor = input_tensor[tf.newaxis, ...]
+
+  # Run inference
+  model_fn = model.signatures['serving_default']
+  output_dict = model_fn(input_tensor)
+  #   print(output_dict)
+  # All outputs are batches tensors.
+  # Convert to numpy arrays, and take index [0] to remove the batch dimension.
+  # We're only interested in the first num_detections.
+  num_detections = int(output_dict.pop('num_detections'))
+  output_dict = {key: value[0, :num_detections].numpy()
+                 for key, value in output_dict.items()}
+  output_dict['num_detections'] = num_detections
+
+  # detection_classes should be ints.
+  output_dict['detection_classes'] = output_dict['detection_classes'].astype(np.int64)
+  # Handle models with masks:
+  if 'detection_masks' in output_dict:
+    # Reframe the the bbox mask to the image size.
+    detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(
+      output_dict['detection_masks'], output_dict['detection_boxes'],
+      image.shape[0], image.shape[1])
+    detection_masks_reframed = tf.cast(detection_masks_reframed > 0.8,
+                                       tf.uint8)
+    output_dict['detection_masks_reframed'] = detection_masks_reframed.numpy()
+
+  return output_dict
+
+
+font = cv2.FONT_HERSHEY_SIMPLEX
+sign = cv2.imread('znak_pieszego.png')
+resize_sign = resize(sign, width=350, height=147)
+pedestrianLogo = cv2.cvtColor(resize_sign, cv2.COLOR_BGR2BGRA)
+
+def show_inference(model, image_np):
+  # the array based representation of the image will be used later in order to prepare the
+  # result image with boxes and labels on it.
+  #   image_np = np.array(Image.open(image_path))
+  # Actual detection.
+  output_dict = run_inference_for_single_image(model, image_np)
+
+  # print(category_index) # wymazane testowo
+  # Visualization of the results of a detection.
+  global final_img
+  final_img = vis_util.visualize_boxes_and_labels_on_image_array(
+    image_np,
+    output_dict['detection_boxes'],
+    output_dict['detection_classes'],
+    output_dict['detection_scores'],
+    category_index,
+    instance_masks=output_dict.get('detection_masks_reframed', None),
+    use_normalized_coordinates=True,
+    line_thickness=2)
+
+  x = output_dict['detection_scores'][0]
+
+  return (x)
+  display(Image.fromarray(image_np))
+
+
+def resize_image(image, width, height,COLOUR=[0,0,0]):
+  h, w, layers = image.shape
+  if h > height:
+      ratio = height/h
+      image = cv2.resize(image,(int(image.shape[1]*ratio),int(image.shape[0]*ratio)))
+  h, w, layers = image.shape
+  if w > width:
+      ratio = width/w
+      image = cv2.resize(image,(int(image.shape[1]*ratio),int(image.shape[0]*ratio)))
+  h, w, layers = image.shape
+  if h < height and w < width:
+      hless = height/h
+      wless = width/w
+      if(hless < wless):
+          image = cv2.resize(image, (int(image.shape[1] * hless), int(image.shape[0] * hless)))
+      else:
+          image = cv2.resize(image, (int(image.shape[1] * wless), int(image.shape[0] * wless)))
+  h, w, layers = image.shape
+  if h < height:
+      df = height - h
+      df /= 2
+      image = cv2.copyMakeBorder(image, int(df), int(df), 0, 0, cv2.BORDER_CONSTANT, value=COLOUR)
+  if w < width:
+      df = width - w
+      df /= 2
+      image = cv2.copyMakeBorder(image, 0, 0, int(df), int(df), cv2.BORDER_CONSTANT, value=COLOUR)
+  image = cv2.resize(image,(1280,720),interpolation=cv2.INTER_AREA)
+  return image
+
+
+# cap = cv2.VideoCapture(0)  # Otworzenie obrazu z kamery internetowej
+# cap = cv2.VideoCapture("image5.mpg") # Najlepiej chodzi
+# cap = cv2.VideoCapture("nocny_test.mpg")
+# cap = cv2.VideoCapture("belgia.mpg")
+# cap = cv2.VideoCapture("test_dzienny3.mpg")
+cap = cv2.VideoCapture("testowanie_noc.mpg")
+
+if not cap.isOpened():
+  print("Uwaga!. Blad wczytania obrazu.")
+  exit()
+
+# screen_id = 1  # Wyswietlanie aplikacji w trybie pelnoekranowym
+# screen = screeninfo.get_monitors()[screen_id]
+# width, height = screen.width, screen.height
+
+window_name = 'projector'
+# cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+# cv2.moveWindow(window_name, screen.x - 1, screen.y - 1)
+# cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
+#                       cv2.WINDOW_FULLSCREEN)
+
+
+print("Komunikat: Detekcja pieszych wlaczona...")
+
+# used to record the time when we processed last frame
+prev_frame_time = 0
+# used to record the time at which we processed current frame
+new_frame_time = 0
+
+_, img = cap.read()
+alarm = 0
+x = show_inference(detection_model, img)
+
+new_frame_time = time.time()
+fps = 1 / (new_frame_time - prev_frame_time)
+prev_frame_time = new_frame_time
+fps = int(fps)
+fps = str(fps)
+cv2.putText(final_img, fps, (7, 40), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+
+while 1:
+  alarm = 0
+  _, img = cap.read()
+  img = resize_image(img, 640, 480)
+  x = show_inference(detection_model, img)
+  if x >= 0.80:
+      final_img = cvzone.overlayPNG(final_img, pedestrianLogo, [495, 10])
+      thread = threading.Thread(target=thread_function, args=(1, stop_request, 440, 2.0))
+      if thread.is_alive():
+        pass
+      else:
+        thread.start()
+
+      # beep.beep(3) # maybe for thread in later works
+  new_frame_time = time.time()
+  fps = 1 / (new_frame_time - prev_frame_time)
+  prev_frame_time = new_frame_time
+  fps = int(fps)
+  fps = str(fps)
+  cv2.putText(final_img, fps, (7, 40), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+  cv2.imshow(window_name, final_img)
+
+
+  if cv2.waitKey(1) == ord('q'):
+    # stop_request.set()
+    thread.join()
+    print("Komunikat: Dzialanie aplikacji zakonczone.")
+    break
+
+cap.release()
+cv2.destroyAllWindows()
