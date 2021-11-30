@@ -155,11 +155,7 @@ def resize_image(image, width, height,COLOUR=[0,0,0]):
 
 
 # cap = cv2.VideoCapture(0)  # Otworzenie obrazu z kamery internetowej
-# cap = cv2.VideoCapture("image5.mpg") # Najlepiej chodzi
-# cap = cv2.VideoCapture("nocny_test.mpg")
-# cap = cv2.VideoCapture("belgia.mpg")
-# cap = cv2.VideoCapture("test_dzienny3.mpg")
-cap = cv2.VideoCapture("testowanie_noc.mpg")
+cap = cv2.VideoCapture("test_dzienny.mpg")
 
 if not cap.isOpened():
   print("Uwaga!. Blad wczytania obrazu.")
