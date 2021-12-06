@@ -1,227 +1,135 @@
-import logging
-import threading
-
-import numpy as np
-import os
-import six.moves.urllib as urllib
-import sys
-import tarfile
-import tensorflow as tf
-import zipfile
-
-from collections import defaultdict
-from io import StringIO
-from matplotlib import pyplot as plt
-from PIL import Image
-from IPython.display import display
-
-from object_detection.utils import ops as utils_ops
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
-
-import screeninfo
-from imutils import resize
-import cvzone
-import winsound
-import time
-import threading
-import beepy as beep
-import cv2
-
 from tkinter import *
+import PyPDF2
 from PIL import Image, ImageTk
-import sys
+from tkinter.filedialog import askopenfile
+# from functions import display_logo, display_textbox, extract_images, display_icon, resize_image, display_images
+from tkinter.ttk import Combobox
+import time
 import os
 
+def quit():
+    global root
+    root.quit()
 
-video_path = sys.argv[1]
-resolution_width = int(sys.argv[2])
-resolution_hight = int(sys.argv[3])
+def open_file():
+    browse_text.set('Wczytywanie...')
+    file = askopenfile(parent=root, mode='rb', title='Wybierz plik', filetype=[("Plik .mpg", "*.mpg")])
+    if file:
+        browse_text.set('Wybrano.')
+        browse_btn = Button(root, textvariable=browse_text, command=lambda: open_file(), font=("Helvetica", 12),
+                            bg="green", fg="black", height=1, width=12)
+        browse_btn.grid(column=1, row=3, pady=5)
+        global selected_path
+        selected_path = file.name
 
-# patch tf1 into `utils.ops`
-utils_ops.tf = tf.compat.v1
+def open_video():
+    cam_text.set('Wczytywanie...')
+    time.sleep(1)
 
-# Patch the location of gfile
-tf.gfile = tf.io.gfile
+def open_cam():
+    cam_enable = 1
 
-# List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = 'object_detection\images\labelmap.pbtxt'
-category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
+def display_logo(url, row, column):
+    img = Image.open(url)
+    #resize image
+    img = img.resize((int(img.size[0]/1.5),int(img.size[1]/1.5)))
+    img = ImageTk.PhotoImage(img)
+    img_label = Label(image=img, bg="white")
+    img_label.image = img
+    img_label.grid(column=column, row=row, rowspan=2, sticky=NW, padx=20, pady=40)
 
-import pathlib
-# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
-PATH_TO_TEST_IMAGES_DIR = pathlib.Path('object_detection/test_images')
-# TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
-TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.mp4")))
-TEST_IMAGE_PATHS
-### change the location accordingly
-detection_model = tf.saved_model.load('object_detection\inference_graph/saved_model')
+def start_detection(selected_model, selected_path, selected_resolution):
+    if selected_resolution == "1920x1080":
+        resolution_width = 1920
+        resolution_hight = 1080
 
-def thread_function(name, stop_request, pitch, duration):
-    soundTone(pitch, duration)
+    elif selected_resolution == "1280x720":
+        resolution_width = 1280
+        resolution_hight = 720
 
+    elif selected_resolution == "640x360":
+        resolution_width = 640
+        resolution_hight = 360
 
-def soundTone(pitch, duration):
-    winsound.Beep(pitch, int(duration*1000))
-    # winsound.Beep(pitch, int(duration))
-stop_request = threading.Event()
-# thread = threading.Thread(target=thread_function, args=(1, stop_request))
+    if selected_model == "Faster-RCNN v1 640x640":
+        if selected_resolution == "1920x1080": resolution = [1920, 1080]
+        os.chdir("C:/Object_detection_faster_rcnn/models-master/research/")
+        command = 'python testowo.py {} {} {}'.format(selected_path, resolution_width, resolution_hight)
+        os.system(command)
 
+    elif selected_model == "SSD EfficientDet D0 512x512":
+        os.chdir("C:/Object_detection_efficientdet/windows_v1.8.0/models-master/research")
+        command = 'python testowo.py'
+        os.system(command)
 
-def run_inference_for_single_image(model, image):
-  image = np.asarray(image)
-  # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
-  input_tensor = tf.convert_to_tensor(image)
-  # The model expects a batch of images, so add an axis with `tf.newaxis`.
-  input_tensor = input_tensor[tf.newaxis, ...]
+    elif selected_model == "SSD MobileNet v1 640x640":
+        os.chdir("C:/Object_detection_mobile/models-master/research")
+        command = 'python testowo.py'
+        os.system(command)
 
-  # Run inference
-  model_fn = model.signatures['serving_default']
-  output_dict = model_fn(input_tensor)
-  num_detections = int(output_dict.pop('num_detections'))
-  output_dict = {key: value[0, :num_detections].numpy()
-                 for key, value in output_dict.items()}
-  output_dict['num_detections'] = num_detections
+root = Tk()
+root.geometry('+%d+%d'%(350,10)) #place GUI at x=350, y=10
+root.title('Praca inżynierska Badełek Piotr')
+root.iconbitmap("wat_logo.ico")
 
-  output_dict['detection_classes'] = output_dict['detection_classes'].astype(np.int64)
+#header area - logo & name
+header = Frame(root, width=495, height=300, bg="white")
+header.grid(columnspan=3, rowspan=2, row=0, column=0)
 
-  if 'detection_masks' in output_dict:
-    # Reframe the the bbox mask to the image size.
-    detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(
-      output_dict['detection_masks'], output_dict['detection_boxes'],
-      image.shape[0], image.shape[1])
-    detection_masks_reframed = tf.cast(detection_masks_reframed > 0.8,
-                                       tf.uint8)
-    output_dict['detection_masks_reframed'] = detection_masks_reframed.numpy()
-  return output_dict
+#main content area - text and image extraction
+main_content = Frame(root, width=501, height=355, bg="#20bebe")
+main_content.grid(columnspan=3, rowspan=4, row=3)
 
+icon = Image.open("app_header.png")
 
-font = cv2.FONT_HERSHEY_SIMPLEX
-sign = cv2.imread('znak_pieszego.png')
-resize_sign = resize(sign, width=350, height=147)
-pedestrianLogo = cv2.cvtColor(resize_sign, cv2.COLOR_BGR2BGRA)
+icon = ImageTk.PhotoImage(icon)
+icon_label = Button(image=icon, width=495, height=300)
+icon_label.image = icon
+icon_label.grid(column=0, row=0, columnspan=3, rowspan=2)
 
-def show_inference(model, image_np):
-  output_dict = run_inference_for_single_image(model, image_np)
-  global final_img
-  final_img = vis_util.visualize_boxes_and_labels_on_image_array(
-    image_np,
-    output_dict['detection_boxes'],
-    output_dict['detection_classes'],
-    output_dict['detection_scores'],
-    category_index,
-    instance_masks=output_dict.get('detection_masks_reframed', None),
-    use_normalized_coordinates=True,
-    line_thickness=2)
-  x = output_dict['detection_scores'][0]
-  return (x)
-  display(Image.fromarray(image_np))
+# Browse source button
+source_text = Label(root, text="Wybierz źródło detekcji:", font=("Helvetica", 12, "bold"), bg="#20bebe", fg="black")
+source_text.grid(column=0, row=3, pady=5)
 
+# Browse video Button
+browse_text = StringVar()
+browse_btn = Button(root, textvariable=browse_text, command=lambda:open_file(), font=("Helvetica",12), bg="#20bebe", fg="black", height=1, width=12)
+browse_text.set("Z pliku video")
+browse_btn.grid(column=1, row=3, pady=5)
+selected_path = 0
 
-def resize_image(image, width, height,COLOUR=[0,0,0]):
-  h, w, layers = image.shape
-  if h > height:
-      ratio = height/h
-      image = cv2.resize(image,(int(image.shape[1]*ratio),int(image.shape[0]*ratio)))
-  h, w, layers = image.shape
-  if w > width:
-      ratio = width/w
-      image = cv2.resize(image,(int(image.shape[1]*ratio),int(image.shape[0]*ratio)))
-  h, w, layers = image.shape
-  if h < height and w < width:
-      hless = height/h
-      wless = width/w
-      if(hless < wless):
-          image = cv2.resize(image, (int(image.shape[1] * hless), int(image.shape[0] * hless)))
-      else:
-          image = cv2.resize(image, (int(image.shape[1] * wless), int(image.shape[0] * wless)))
-  h, w, layers = image.shape
-  if h < height:
-      df = height - h
-      df /= 2
-      image = cv2.copyMakeBorder(image, int(df), int(df), 0, 0, cv2.BORDER_CONSTANT, value=COLOUR)
-  if w < width:
-      df = width - w
-      df /= 2
-      image = cv2.copyMakeBorder(image, 0, 0, int(df), int(df), cv2.BORDER_CONSTANT, value=COLOUR)
-  # image = cv2.resize(image,(1280,720),interpolation=cv2.INTER_AREA)
-  return image
+# Camera button
+cam_text = StringVar()
+cam_btn = Button(root, textvariable=cam_text, command=lambda:open_video(), font=("Helvetica",12), bg="#20bebe", fg="black", height=1, width=12)
+cam_text.set("Kamera")
+cam_btn.grid(column=2, row=3, pady=5)
+
+# Neural network model browse
+nn_text = Label(root, text="Wybierz model sieci:", font=("Helvetica", 12, "bold"), bg="#20bebe", fg="black")
+nn_text.grid(column=0, row=4)
+selected_model = StringVar()
+
+suwak = Combobox(root, textvariable=selected_model, state="readonly")
+suwak['values'] = ("SSD EfficientDet D0 512x512", "Faster-RCNN v1 640x640", "SSD MobileNet v1 640x640")
+suwak.grid(row=4, column=1, columnspan=2)
 
 
-# Import sys arguments
-# video_path = sys.argv[1]
-# resolution_width = sys.argv[2]
-# resolution_hight = sys.argv[3]
-
-# cap = cv2.VideoCapture(0)  # Otworzenie obrazu z kamery internetowej
-cap = cv2.VideoCapture(video_path)
-
-if not cap.isOpened():
-  print("Uwaga!. Blad wczytania obrazu.")
-  exit()
-
-# screen_id = 1  # Wyswietlanie aplikacji w trybie pelnoekranowym
-# screen = screeninfo.get_monitors()[screen_id]
-# width, height = screen.width, screen.height
-
-window_name = 'projector'
-# cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
-# cv2.moveWindow(window_name, screen.x - 1, screen.y - 1)
-# cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN,
-#                       cv2.WINDOW_FULLSCREEN)
+# Resolution browse
+selected_resolution = StringVar()
+res_text = Label(root, text="Wybierz rozdzielczość obrazu:", font=("Helvetica", 12, "bold"), bg="#20bebe", fg="black")
+res_text.grid(column=0, row=5)
+suwak = Combobox(root, textvariable=selected_resolution, state="readonly")
+suwak['values'] = ("1920x1080", "1280x720", "640x360")
+suwak.grid(row=5, column=1, columnspan=2)
 
 
-print("Komunikat: Detekcja pieszych wlaczona...")
-
-# used to record the time when we processed last frame
-prev_frame_time = 0
-# used to record the time at which we processed current frame
-new_frame_time = 0
-
-_, img = cap.read()
-alarm = 0
-x = show_inference(detection_model, img)
-
-new_frame_time = time.time()
-fps = 1 / (new_frame_time - prev_frame_time)
-prev_frame_time = new_frame_time
-fps = int(fps)
-fps = str(fps)
-cv2.putText(final_img, fps, (7, 40), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+#Start detection button
+start_text = StringVar()
+start_btn = Button(root, textvariable=start_text, font=("Raleway",12), bg="green", fg="white", height=1, width=15, command=lambda:start_detection(selected_model.get(), selected_path,
+                                                                                                                                                  selected_resolution.get()))
+start_text.set("Rozpocznij detekcje")
+start_btn.grid(row=6, column=0, columnspan=3)
 
 
-while 1:
-  alarm = 0
-  _, img = cap.read()
-  try:
-      # img = resize_image(img, 640, 480)
-      img = resize_image(img, resolution_width, resolution_hight)
-      x = show_inference(detection_model, img)
-      if x >= 0.80:
-          final_img = cvzone.overlayPNG(final_img, pedestrianLogo, [495, 10])
-          thread = threading.Thread(target=thread_function, args=(1, stop_request, 440, 2.0))
-          if thread.is_alive():
-            pass
-          else:
-            thread.start()
+root.mainloop()
 
-      new_frame_time = time.time()
-      fps = 1 / (new_frame_time - prev_frame_time)
-      prev_frame_time = new_frame_time
-      fps = int(fps)
-      fps = str(fps)
-      cv2.putText(final_img, fps, (7, 40), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-      cv2.imshow(window_name, final_img)
-  except:
-      thread.join()
-      print("Komunikat: Dzialanie aplikacji zakonczone.")
-      break
-
-  if cv2.waitKey(1) == ord('q'):
-    # stop_request.set()
-    thread.join()
-    print("Komunikat: Dzialanie aplikacji zakonczone.")
-    break
-
-cap.release()
-cv2.destroyAllWindows()
