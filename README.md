@@ -1,4 +1,4 @@
-# Interactive map price per m2 poland
+# Pedestrian detection app
 
 ## General info
 
