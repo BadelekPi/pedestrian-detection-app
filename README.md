@@ -7,7 +7,6 @@ Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
 ## Presentation
 Preparing a set of training data on the Warsaw's streets - 3000 photos divided into several categories
-![Screenshot](media/image8.jpeg)
 ![Screenshot](media/image9.jpeg)
 ![Screenshot](media/image10.jpeg)
 
