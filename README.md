@@ -23,3 +23,7 @@ Graphical user inferface algorithm:
 Detection app algorithm:
 
 ![Screenshot](media/image18.jpg)
+
+Data set processing:
+
+<p align="center"><img width="640" height="480" src="media/image12.jpeg"></p>
