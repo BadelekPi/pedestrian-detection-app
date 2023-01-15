@@ -7,17 +7,19 @@ Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
 ## Presentation
 
-An example of how the application works
+An example of how the application works:
+
 ![Screenshot](media/Untitled(1).gif)
 
-Preparing a set of training data on the Warsaw's streets - 3000 photos divided into several categories
+Preparing a set of training data on the Warsaw's streets - 3000 photos divided into several categories:
+
 ![Screenshot](media/image9.jpeg)
 ![Screenshot](media/image10.jpeg)
 
-Graphical user inferface algorithm
+Graphical user inferface algorithm:
 
 ![Screenshot](media/image15.png)
 
-Detection app algorithm
+Detection app algorithm:
 
 ![Screenshot](media/image18.jpg)
