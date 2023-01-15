@@ -5,4 +5,4 @@ This article is intended to consider the impact of processing distorted data on 
 ## Technologies
 Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
-## General info
+## Presentation
