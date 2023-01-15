@@ -13,7 +13,7 @@ An example of how the application works:
 
 Preparing a set of training data on the Warsaw's streets - 3000 photos divided into several categories:
 
-![Screenshot](media/image9.jpeg)
+<p align="center">![Screenshot](media/image9.jpeg)</p>
 ![Screenshot](media/image10.jpeg)
 
 Graphical user inferface algorithm:
