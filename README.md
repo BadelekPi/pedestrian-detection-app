@@ -14,7 +14,7 @@ An example of how the application works:
 Preparing a set of training data on the Warsaw's streets - 3000 photos divided into several categories:
 
 <p align="center"><img width="640" height="480" src="media/image9.jpeg"></p>
-![Screenshot](media/image10.jpeg)
+<p align="center"><img width="640" height="480" src="media/image10.jpeg"></p>
 
 Graphical user inferface algorithm:
 
