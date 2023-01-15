@@ -9,3 +9,7 @@ Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 Graphical user inferface algorithm
 
 ![Screenshot](media/image15.png)
+
+Detection app algorithm
+
+![Screenshot](media/image18.jpg)
