@@ -6,3 +6,5 @@ This article is intended to consider the impact of processing distorted data on 
 Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
 ## Presentation
+Graphical user inferface algorithm
+![Screenshot](media/image15.png)
