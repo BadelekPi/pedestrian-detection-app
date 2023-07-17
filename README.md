@@ -5,9 +5,13 @@ My engineering thesis mainly focused on considering the impact of processing dis
 The application allows the use of three different convolutional network models trained using transfer learning for detection.
 
 ## Conclusions
-The tests conducted for the purposes of the thesis demonstrated that the optimal neural network model for use in the developed application is the Faster RCNN v1 640x640 model. It achieved an average detection probability of 84%, which is 7 percentage points higher than the SSD EfficientDet D0 512x512 model. 
+The tests conducted for the purposes of the thesis demonstrated that the optimal neural network model for use in the developed application is the Faster RCNN v1 640x640 model. It achieved an average detection probability of 84%, which is 7 percentage points higher than the SSD EfficientDet D0 512x512 model.
+
 The least optimal network model in the developed application was the SSD MobileNet v1 640x640 model, which obtained an average detection probability of 62% in the tests.
-I also used the recorded test footage to evaluate the effectiveness of a pre-existing detection program. I decided to choose the Yolov4 network algorithm because, according to available online tests, it demonstrates very good detection performance. For the test recordings, the average pedestrian detection probability was 95%. To improve the detection effectiveness further, it would be necessary to use a larger dataset of image data, encompassing more pedestrian positions and various environmental conditions.
+I also used the recorded test footage to evaluate the effectiveness of a pre-existing detection program. 
+I decided to choose the Yolov4 network algorithm because, according to available online tests, it demonstrates very good detection performance. 
+For the test recordings, the average pedestrian detection probability was 95%. 
+To improve the detection effectiveness further, it would be necessary to use a larger dataset of image data, encompassing more pedestrian positions and various environmental conditions.
 
 
 ## Technologies
@@ -16,7 +20,7 @@ Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 ## Presentation
 <p align="center"><img width="506" height="698" src="media/gui.jpg"></p>
 
-An example of how the application works:
+An example of how the application works (Loss of resolution on Github due to conversion to GIF format):
 
 ![Screenshot](media/Untitled(1).gif)
 
