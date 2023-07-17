@@ -14,7 +14,7 @@ I also used the recorded test footage to evaluate the effectiveness of a pre-exi
 Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
 ## Presentation
-![Screenshot](media/gui.jpg)
+<p align="center"><img width="640" height="480" src="media/gui.jpg"></p>
 
 An example of how the application works:
 
