@@ -14,6 +14,7 @@ I also used the recorded test footage to evaluate the effectiveness of a pre-exi
 Python3.7, TensorFlow, Tkinter, OpenCV, Google Colab
 
 ## Presentation
+![Screenshot](media/gui.jpg)
 
 An example of how the application works:
 
@@ -25,8 +26,6 @@ Preparing a set of training data on the Warsaw's streets - 3000 photos divided i
 <p align="center"><img width="640" height="480" src="media/image10.jpeg"></p>
 
 Graphical user inferface algorithm:
-
-![Screenshot](media/gui.jpg)
 
 ![Screenshot](media/image15.png)
 
