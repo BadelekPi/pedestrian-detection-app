@@ -25,7 +25,8 @@ Preparing a set of training data on the Warsaw's streets - 3000 photos divided i
 <p align="center"><img width="640" height="480" src="media/image10.jpeg"></p>
 
 Graphical user inferface algorithm:
-![Screenshot](media/gui.png)
+
+![Screenshot](media/gui.jpg)
 
 ![Screenshot](media/image15.png)
 
