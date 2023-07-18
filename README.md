@@ -36,7 +36,7 @@ Graphical user inferface algorithm:
 
 Detection app algorithm:
 
-<p align="center"><img width="450" height="1101" src="media/image18.png"></p>
+<p align="center"><img width="450" height="1101" src="media/image18.jpg"></p>
 
 Data set processing:
 
